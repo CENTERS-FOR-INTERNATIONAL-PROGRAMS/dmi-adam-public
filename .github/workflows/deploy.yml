@@ -1,0 +1,29 @@
+name: ADAM Dashboard
+on:
+  push:
+    branches: [ main ]
+jobs:
+
+  build:
+    name: Deploy ADAM Dashboard
+    runs-on: ubuntu-latest
+    steps:
+    - name: updating and deploying app
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USERNAME }}
+        key: ${{ secrets.PRIVATE_KEY }}
+        port: ${{ secrets.PORT }}
+        script: |
+          sudo cp -rf  /var/lib/adam_workflow/dmi-adam-public/* /tmp/dmi-adam-dashboard-backup/
+          cd /var/lib/adam_workflow/dmi-adam-public/
+          sudo git switch main
+          sudo rm -rf dist
+          sudo rm package-lock.json
+          sudo rm -rf node_modules
+          sudo git pull
+          sudo npm install
+          sudo ng build --configuration production
+          sudo cp -r ./dist /var/deploy_dashboard/
+          echo "ADAM Dashboard is upto date! Deployment successful."
